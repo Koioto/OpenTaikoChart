@@ -15,6 +15,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             playable.Sections = new List<Chip>[1];
             var sections = playable.Sections;
             sections[0] = new List<Chip>();
+            var balloonIndex = 0;
 
             var courseJson = otcc;
 
@@ -129,17 +130,17 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
                                     if (note == Notes.Balloon)
                                     {
-                                        if (courseJson.Balloon.Length > BalloonIndex)
+                                        if (courseJson.Balloon.Length > balloonIndex)
                                         {
-                                            if (courseJson.Balloon[BalloonIndex].HasValue)
+                                            if (courseJson.Balloon[balloonIndex].HasValue)
                                             {
-                                                noteChip.RollCount = courseJson.Balloon[BalloonIndex].Value;
+                                                noteChip.RollCount = courseJson.Balloon[balloonIndex].Value;
                                             }
                                             else
                                             {
                                                 noteChip.RollCount = 5;
                                             }
-                                            BalloonIndex++;
+                                            balloonIndex++;
                                         }
                                         else
                                         {
@@ -302,7 +303,5 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
         {
             return measure.GetRate() / bpm * 1000 * 1000.0;
         }
-
-        private static int BalloonIndex;
     }
 }

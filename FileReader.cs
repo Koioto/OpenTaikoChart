@@ -17,7 +17,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
         public string Description => "Koioto file Reader plugin for Open Taiko Chart.";
 
-        public string Version => "1.0";
+        public string Version => "1.1";
 
         public string[] GetExtensions()
         {
@@ -170,12 +170,18 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             chartInfo.Subtitle[0] = info.Subtitle;
 
             chartInfo.Artist = new string[1][];
-            chartInfo.Artist[0] = new string[info.Artist.Length];
-            chartInfo.Artist[0] = info.Artist;
+            if (info.Artist != null)
+            {
+                chartInfo.Artist[0] = new string[info.Artist.Length];
+                chartInfo.Artist[0] = info.Artist;
+            }
 
             chartInfo.Creator = new string[1][];
-            chartInfo.Creator[0] = new string[info.Creator.Length];
-            chartInfo.Creator[0] = info.Creator;
+            if (info.Creator != null)
+            {
+                chartInfo.Creator[0] = new string[info.Creator.Length];
+                chartInfo.Creator[0] = info.Creator;
+            }
 
             chartInfo.Audio = new string[1];
             if (info.Audio != null)
