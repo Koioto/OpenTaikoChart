@@ -24,7 +24,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
             // 初めから1秒開けておく。
 
-            var nowTime = 1000000L;
+            var nowTime = 0L;
             var nowBPM = otci.BPM ?? 120.0;
             var nowMeasure = new Measure(4, 4);
             var nowScroll = 1.0;
@@ -44,7 +44,8 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                 //var oneMeasure = GetMeasureDuration(nowMeasure, nowBPM);
                 var bgmStartChip = new Chip();
                 bgmStartChip.ChipType = Chips.BGMStart;
-                bgmStartChip.Time = nowTime + (long)(Math.Abs(offset) * 1000.0 * 1000.0);
+                bgmStartChip.Time = nowTime - (long)(Math.Abs(offset) * 1000.0 * 1000.0);
+                bgmStartChip.BPM = nowBPM;
                 list.Add(bgmStartChip);
             }
             else
@@ -52,6 +53,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                 var bgmStartChip = new Chip();
                 bgmStartChip.ChipType = Chips.BGMStart;
                 bgmStartChip.Time = nowTime;
+                bgmStartChip.BPM = nowBPM;
                 list.Add(bgmStartChip);
                 // その時間分ずらす
                 nowTime += (long)(offset * 1000.0 * 1000.0);
@@ -289,6 +291,27 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                     list.Insert(nearestChip.Count() > 0 ? list.IndexOf(nearestChip.Last()) : 0, offsetChip);
                 }
             }
+
+            // オフセットを追加する。前に1小節、後ろに1小節。
+            {
+                // 前
+                var origBPM = origin.BPM;
+                var time = GetMeasureDuration(new Measure(4, 4), origBPM);
+                list.ForEach(c => c.Time += (long)Math.Abs(time));
+            }
+            {
+                // 後
+                var last = list.Last();
+                var lastChip = new Chip();
+                lastChip.BPM = last.BPM;
+                lastChip.Scroll = last.Scroll;
+                lastChip.CanShow = false;
+                lastChip.ChipType = Chips.Measure;
+                lastChip.Time = last.Time + (long)Math.Abs(GetMeasureDuration(nowMeasure, last.BPM));
+
+                list.Add(lastChip);
+            }
+
 
             return playable;
         }
