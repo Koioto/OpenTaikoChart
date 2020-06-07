@@ -279,7 +279,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                     offsetChip.Time = origin.Time - (long)(Math.Abs(offsetValue) * 1000.0 * 1000.0);
                     //list.Add(offsetChip);
                     var nearestChip = list.Where(c => c.Time <= offsetChip.Time);
-                    list.Insert(nearestChip.Count() > 0 ? list.IndexOf(nearestChip.Last()) : 0, offsetChip);
+                    list.Insert(nearestChip.Count() > 0 ? list.IndexOf(nearestChip.Last()) + 1 : 0, offsetChip);
                 }
                 else
                 {
@@ -288,7 +288,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                     offsetChip.ChipType = Chips.MovieStart;
                     offsetChip.Time = origin.Time + (long)(Math.Abs(offsetValue) * 1000.0 * 1000.0);
                     var nearestChip = list.Where(c => c.Time <= offsetChip.Time);
-                    list.Insert(nearestChip.Count() > 0 ? list.IndexOf(nearestChip.Last()) : 0, offsetChip);
+                    list.Insert(nearestChip.Count() > 0 ? list.IndexOf(nearestChip.Last()) + 1 : 0, offsetChip);
                 }
             }
 
