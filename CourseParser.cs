@@ -11,8 +11,10 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
         public static Playable Parse(OpenTaikoChartInfomation otci, OpenTaikoChartCourse otcc)
         {
             // メドレーではないので大きさは1。
-            var playable = new Playable();
-            playable.Sections = new List<Chip>[1];
+            var playable = new Playable
+            {
+                Sections = new List<Chip>[1]
+            };
             var sections = playable.Sections;
             sections[0] = new List<Chip>();
             var balloonIndex = 0;
@@ -42,18 +44,22 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             {
                 //
                 //var oneMeasure = GetMeasureDuration(nowMeasure, nowBPM);
-                var bgmStartChip = new Chip();
-                bgmStartChip.ChipType = Chips.BGMStart;
-                bgmStartChip.Time = nowTime - (long)(Math.Abs(offset) * 1000.0 * 1000.0);
-                bgmStartChip.BPM = nowBPM;
+                var bgmStartChip = new Chip
+                {
+                    ChipType = Chips.BGMStart,
+                    Time = nowTime - (long)(Math.Abs(offset) * 1000.0 * 1000.0),
+                    BPM = nowBPM
+                };
                 list.Add(bgmStartChip);
             }
             else
             {
-                var bgmStartChip = new Chip();
-                bgmStartChip.ChipType = Chips.BGMStart;
-                bgmStartChip.Time = nowTime;
-                bgmStartChip.BPM = nowBPM;
+                var bgmStartChip = new Chip
+                {
+                    ChipType = Chips.BGMStart,
+                    Time = nowTime,
+                    BPM = nowBPM
+                };
                 list.Add(bgmStartChip);
                 // その時間分ずらす
                 nowTime += (long)(offset * 1000.0 * 1000.0);
@@ -93,15 +99,17 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                         if (isFirstNoteInMeasure)
                         {
                             // 小節
-                            var measureChip = new Chip();
-                            measureChip.ChipType = Chips.Measure;
-                            measureChip.CanShow = true;
-                            measureChip.Scroll = nowScroll;
-                            measureChip.BPM = nowBPM;
-                            measureChip.IsGoGoTime = isGoGoTime;
-                            measureChip.Measure = nowMeasure;
-                            measureChip.MeasureCount = measureCount;
-                            measureChip.Time = nowTime;
+                            var measureChip = new Chip
+                            {
+                                ChipType = Chips.Measure,
+                                CanShow = true,
+                                Scroll = nowScroll,
+                                BPM = nowBPM,
+                                IsGoGoTime = isGoGoTime,
+                                Measure = nowMeasure,
+                                MeasureCount = measureCount,
+                                Time = nowTime
+                            };
                             list.Add(measureChip);
 
                             isFirstNoteInMeasure = false;
@@ -114,16 +122,18 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                                 var note = NotesConverter.GetNotesFromChar(digit);
 
                                 // 音符の追加
-                                var noteChip = new Chip();
-                                noteChip.ChipType = Chips.Note;
-                                noteChip.NoteType = note;
-                                noteChip.Scroll = nowScroll;
-                                noteChip.BPM = nowBPM;
-                                noteChip.CanShow = true;
-                                noteChip.IsGoGoTime = isGoGoTime;
-                                noteChip.Measure = nowMeasure;
-                                noteChip.MeasureCount = measureCount;
-                                noteChip.Time = nowTime;
+                                var noteChip = new Chip
+                                {
+                                    ChipType = Chips.Note,
+                                    NoteType = note,
+                                    Scroll = nowScroll,
+                                    BPM = nowBPM,
+                                    CanShow = true,
+                                    IsGoGoTime = isGoGoTime,
+                                    Measure = nowMeasure,
+                                    MeasureCount = measureCount,
+                                    Time = nowTime
+                                };
 
                                 if (note == Notes.RollStart || note == Notes.ROLLStart || note == Notes.Balloon)
                                 {
@@ -134,14 +144,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                                     {
                                         if (courseJson.Balloon.Length > balloonIndex)
                                         {
-                                            if (courseJson.Balloon[balloonIndex].HasValue)
-                                            {
-                                                noteChip.RollCount = courseJson.Balloon[balloonIndex].Value;
-                                            }
-                                            else
-                                            {
-                                                noteChip.RollCount = 5;
-                                            }
+                                            noteChip.RollCount = courseJson.Balloon[balloonIndex] ?? 5;
                                             balloonIndex++;
                                         }
                                         else
@@ -274,9 +277,11 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                     // すべてのチップの時間をずらす
                     list.ForEach(c => c.Time += (long)(Math.Abs(offsetValue) * 1000.0 * 1000.0));
 
-                    var offsetChip = new Chip();
-                    offsetChip.ChipType = Chips.MovieStart;
-                    offsetChip.Time = origin.Time - (long)(Math.Abs(offsetValue) * 1000.0 * 1000.0);
+                    var offsetChip = new Chip
+                    {
+                        ChipType = Chips.MovieStart,
+                        Time = origin.Time - (long)(Math.Abs(offsetValue) * 1000.0 * 1000.0)
+                    };
                     //list.Add(offsetChip);
                     var nearestChip = list.Where(c => c.Time <= offsetChip.Time);
                     list.Insert(nearestChip.Count() > 0 ? list.IndexOf(nearestChip.Last()) + 1 : 0, offsetChip);
@@ -284,9 +289,11 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                 else
                 {
                     // そのまま入れることができる。
-                    var offsetChip = new Chip();
-                    offsetChip.ChipType = Chips.MovieStart;
-                    offsetChip.Time = origin.Time + (long)(Math.Abs(offsetValue) * 1000.0 * 1000.0);
+                    var offsetChip = new Chip
+                    {
+                        ChipType = Chips.MovieStart,
+                        Time = origin.Time + (long)(Math.Abs(offsetValue) * 1000.0 * 1000.0)
+                    };
                     var nearestChip = list.Where(c => c.Time <= offsetChip.Time);
                     list.Insert(nearestChip.Count() > 0 ? list.IndexOf(nearestChip.Last()) + 1 : 0, offsetChip);
                 }
@@ -302,12 +309,14 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             {
                 // 後
                 var last = list.Last();
-                var lastChip = new Chip();
-                lastChip.BPM = last.BPM;
-                lastChip.Scroll = last.Scroll;
-                lastChip.CanShow = false;
-                lastChip.ChipType = Chips.Measure;
-                lastChip.Time = last.Time + (long)Math.Abs(GetMeasureDuration(nowMeasure, last.BPM));
+                var lastChip = new Chip
+                {
+                    BPM = last.BPM,
+                    Scroll = last.Scroll,
+                    CanShow = false,
+                    ChipType = Chips.Measure,
+                    Time = last.Time + (long)Math.Abs(GetMeasureDuration(nowMeasure, last.BPM))
+                };
 
                 list.Add(lastChip);
             }

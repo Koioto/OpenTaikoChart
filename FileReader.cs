@@ -54,8 +54,10 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                     continue;
                 }
                 var single = File.ReadAllText(path, Encoding.UTF8);
-                courses[courseIndex] = new OpenTaikoChart_Difficluty();
-                courses[courseIndex].Single = JsonConvert.DeserializeObject<OpenTaikoChartCourse>(single);
+                courses[courseIndex] = new OpenTaikoChart_Difficluty
+                {
+                    Single = JsonConvert.DeserializeObject<OpenTaikoChartCourse>(single)
+                };
 
                 // DP譜面
                 if (info.Courses[courseIndex].Multiple == null)
@@ -72,16 +74,18 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                 }
             }
 
-            var result = new Infomationable();
-            result.FilePath = filePath;
-            result.Title = info.Title;
-            result.SubTitle = info.Subtitle;
-            result.BPM = info.BPM;
-            result.Artist = info.Artist;
-            result.Creator = info.Creator;
-            result.PreviewSong = info.Audio != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Audio) : null;
-            result.SongPreviewTime = info.SongPreview;
-            result.AlbumartPath = info.Albumart != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Albumart) : null;
+            var result = new Infomationable
+            {
+                FilePath = filePath,
+                Title = info.Title,
+                SubTitle = info.Subtitle,
+                BPM = info.BPM,
+                Artist = info.Artist,
+                Creator = info.Creator,
+                PreviewSong = info.Audio != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Audio) : null,
+                SongPreviewTime = info.SongPreview,
+                AlbumartPath = info.Albumart != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Albumart) : null
+            };
 
             foreach (var item in info.Courses)
             {
@@ -177,24 +181,10 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             }
 
             chartInfo.Audio = new string[1];
-            if (info.Audio != null)
-            {
-                chartInfo.Audio[0] = Path.Combine(Path.GetDirectoryName(filePath), info.Audio);
-            }
-            else
-            {
-                chartInfo.Audio[0] = null;
-            }
+            chartInfo.Audio[0] = info.Audio != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Audio) : null;
 
             chartInfo.Background = new string[1];
-            if (info.Background != null)
-            {
-                chartInfo.Background[0] = Path.Combine(Path.GetDirectoryName(filePath), info.Background);
-            }
-            else
-            {
-                chartInfo.Background[0] = null;
-            }
+            chartInfo.Background[0] = info.Background != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Background) : null;
 
             chartInfo.Movieoffset = new double?[1];
             chartInfo.Movieoffset[0] = info.Movieoffset;
