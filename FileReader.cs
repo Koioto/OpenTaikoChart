@@ -17,7 +17,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
         public string Description => "Koioto file Reader plugin for Open Taiko Chart.";
 
-        public string Version => "1.3";
+        public string Version => "1.4";
 
         public string[] GetExtensions()
         {
@@ -79,16 +79,9 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             result.BPM = info.BPM;
             result.Artist = info.Artist;
             result.Creator = info.Creator;
-            if (info.Audio != null)
-            {
-                result.PreviewSong = Path.Combine(Path.GetDirectoryName(filePath), info.Audio);
-            }
-            else
-            {
-                result.PreviewSong = null;
-            }
+            result.PreviewSong = info.Audio != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Audio) : null;
             result.SongPreviewTime = info.SongPreview;
-            result.AlbumartPath = info.Albumart;
+            result.AlbumartPath = info.Albumart != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Albumart) : null;
 
             foreach (var item in info.Courses)
             {
