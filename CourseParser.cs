@@ -71,11 +71,13 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             {
                 // その小節にいくつ音符があるかカウントする
                 var notesCount = 0;
+                var notesElementCount = 0;
                 foreach (var line in measure)
                 {
-                    if (!line.Trim().StartsWith("#"))
+                    if (!line.Trim().StartsWith("#") && !string.IsNullOrWhiteSpace(line.Trim()))
                     {
                         // 命令行ではない
+                        notesElementCount++;
                         foreach (var digit in line)
                         {
                             if (digit >= '0' && digit <= '9')
@@ -85,6 +87,24 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                             }
                         }
                     }
+                }
+
+                // ノーツが空だったときの処理
+                if (notesElementCount <= 0)
+                {
+                    // 小節
+                    var measureChip = new Chip
+                    {
+                        ChipType = Chips.Measure,
+                        CanShow = true,
+                        Scroll = nowScroll,
+                        BPM = nowBPM,
+                        IsGoGoTime = isGoGoTime,
+                        Measure = nowMeasure,
+                        MeasureCount = measureCount,
+                        Time = nowTime
+                    };
+                    list.Add(measureChip);
                 }
 
                 foreach (var line in measure)
@@ -261,6 +281,14 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                         list.Add(eventChip);
                     }
                 }
+
+                // ノーツが空だったときの処理
+                if (notesElementCount <= 0)
+                {
+                    nowTime += (long)GetMeasureDuration(nowMeasure, nowBPM);
+                }
+
+
                 measureCount++;
                 isFirstNoteInMeasure = true;
             }

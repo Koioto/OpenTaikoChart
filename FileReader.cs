@@ -17,7 +17,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
         public string Description => "Koioto file Reader plugin for Open Taiko Chart.";
 
-        public string Version => "1.4";
+        public string Version => "1.5";
 
         public string[] GetExtensions()
         {
@@ -118,8 +118,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
         private (Playable[], ChartInfo) TCIPlayable(string filePath, Koioto.Support.FileReader.Courses course)
         {
-            var infoText = File.ReadAllText(filePath, Encoding.UTF8);
-            var info = JsonConvert.DeserializeObject<OpenTaikoChartInfomation>(infoText);
+            var info = GetOpenTaikoChartInfomation(filePath);
 
             var courses = new OpenTaikoChart_Difficluty[info.Courses.Length];
 
@@ -200,7 +199,33 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
         private (Playable[], ChartInfo) TCMPlayable(string filePath, Koioto.Support.FileReader.Courses courses)
         {
+            var medley = GetOpenTaikoChartMedley(filePath);
+
+            var chartInfo = new ChartInfo();
+
+            chartInfo.Title = new string[medley.Charts.Length];
+
+            // コースの読み込み。
+            foreach (var item in medley.Charts)
+            {
+                var course = GetCoursesFromStirng(item.Difficulty);
+            }
+
             return (null, null);
+        }
+
+        private static OpenTaikoChartInfomation GetOpenTaikoChartInfomation(string filePath)
+        {
+            var infoText = File.ReadAllText(filePath, Encoding.UTF8);
+            var info = JsonConvert.DeserializeObject<OpenTaikoChartInfomation>(infoText);
+            return info;
+        }
+
+        private static OpenTaikoChart_Medley GetOpenTaikoChartMedley(string filePath)
+        {
+            var medleyText = File.ReadAllText(filePath, Encoding.UTF8);
+            var medley = JsonConvert.DeserializeObject<OpenTaikoChart_Medley>(medleyText);
+            return medley;
         }
 
         private Koioto.Support.FileReader.Courses GetCoursesFromStirng(string str)
