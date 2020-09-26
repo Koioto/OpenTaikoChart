@@ -34,6 +34,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             var measureCount = 0;
             var isFirstNoteInMeasure = true;
             var movieOffset = otci.Movieoffset;
+            var barVisible = true;
             Chip rollstartChip = null;
 
             // オフセットする。
@@ -122,7 +123,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                             var measureChip = new Chip
                             {
                                 ChipType = Chips.Measure,
-                                CanShow = true,
+                                CanShow = barVisible,
                                 Scroll = nowScroll,
                                 BPM = nowBPM,
                                 IsGoGoTime = isGoGoTime,
@@ -261,6 +262,23 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                             if (double.TryParse(param, out var delay))
                             {
                                 nowTime += (long)(delay * 1000.0 * 1000.0);
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                        else if (commandMatch("#bar"))
+                        {
+                            // #bar show/hide
+                            var visible = param.Trim();
+                            if (visible == "show")
+                            {
+                                barVisible = true;
+                            }
+                            else if (visible == "hide")
+                            {
+                                barVisible = false;
                             }
                             else
                             {
