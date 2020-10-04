@@ -90,24 +90,6 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                     }
                 }
 
-                // ノーツが空だったときの処理
-                if (notesElementCount <= 0)
-                {
-                    // 小節
-                    var measureChip = new Chip
-                    {
-                        ChipType = Chips.Measure,
-                        CanShow = true,
-                        Scroll = nowScroll,
-                        BPM = nowBPM,
-                        IsGoGoTime = isGoGoTime,
-                        Measure = nowMeasure,
-                        MeasureCount = measureCount,
-                        Time = nowTime
-                    };
-                    list.Add(measureChip);
-                }
-
                 foreach (var line in measure)
                 {
                     // 行
@@ -165,12 +147,12 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                                     {
                                         if (courseJson.Balloon.Length > balloonIndex)
                                         {
-                                            noteChip.RollCount = courseJson.Balloon[balloonIndex] ?? 5;
+                                            noteChip.RollObjective = courseJson.Balloon[balloonIndex] ?? 5;
                                             balloonIndex++;
                                         }
                                         else
                                         {
-                                            noteChip.RollCount = 5;
+                                            noteChip.RollObjective = 5;
                                         }
                                     }
                                 }
@@ -303,6 +285,20 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                 // ノーツが空だったときの処理
                 if (notesElementCount <= 0)
                 {
+                    // 小節
+                    var measureChip = new Chip
+                    {
+                        ChipType = Chips.Measure,
+                        CanShow = barVisible,
+                        Scroll = nowScroll,
+                        BPM = nowBPM,
+                        IsGoGoTime = isGoGoTime,
+                        Measure = nowMeasure,
+                        MeasureCount = measureCount,
+                        Time = nowTime
+                    };
+                    list.Add(measureChip);
+
                     nowTime += (long)GetMeasureDuration(nowMeasure, nowBPM);
                 }
 

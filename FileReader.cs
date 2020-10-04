@@ -7,17 +7,17 @@ using Newtonsoft.Json;
 namespace Koioto.SamplePlugin.OpenTaikoChart
 {
     /// <summary>
-    /// Open Taiko Chart Rev.1 に準拠したクラス。
+    /// Open Taiko Chart Rev2.2 に準拠したクラス。
     /// </summary>
     public class FileReader : Koioto.Plugin.IFileReadable
     {
-        public string Name => "Open Taiko Chart";
+        public string Name => "OpenTaikoChart";
 
         public string[] Creator => new string[] { "AioiLight" };
 
         public string Description => "Koioto file Reader plugin for Open Taiko Chart.";
 
-        public string Version => "1.6";
+        public string Version => "1.9";
 
         public string[] GetExtensions()
         {
@@ -67,7 +67,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
                 var multipleAmount = info.Courses[courseIndex].Multiple.Length;
                 courses[courseIndex].Multiple = new OpenTaikoChartCourse[multipleAmount];
-                for (int multipleIndex = 0; multipleIndex < multipleAmount; multipleIndex++)
+                for (var multipleIndex = 0; multipleIndex < multipleAmount; multipleIndex++)
                 {
                     var multiple = File.ReadAllText(Path.Combine(Path.GetDirectoryName(filePath), info.Courses[courseIndex].Multiple[multipleIndex]), Encoding.UTF8);
                     courses[courseIndex].Multiple[multipleIndex] = JsonConvert.DeserializeObject<OpenTaikoChartCourse>(multiple);
@@ -141,7 +141,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             if (diff.Multiple != null)
             {
                 multipleFile = new string[diff.Multiple.Length];
-                for (int i = 0; i < multipleFile.Length; i++)
+                for (var i = 0; i < multipleFile.Length; i++)
                 {
                     multipleFile[i] = File.ReadAllText(Path.Combine(Path.GetDirectoryName(filePath), diff.Multiple[i]), Encoding.UTF8);
                 }
@@ -149,7 +149,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
             var single = JsonConvert.DeserializeObject<OpenTaikoChartCourse>(singleFile);
             var multiple = new OpenTaikoChartCourse[multipleFile.Length];
-            for (int i = 0; i < multiple.Length; i++)
+            for (var i = 0; i < multiple.Length; i++)
             {
                 multiple[i] = JsonConvert.DeserializeObject<OpenTaikoChartCourse>(multipleFile[i]);
             }
