@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Koioto.Support;
+using Koioto.Support.FileReader;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Koioto.Support;
-using Koioto.Support.FileReader;
 
 namespace Koioto.SamplePlugin.OpenTaikoChart
 {
@@ -343,26 +343,28 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
             // オフセットを追加する。前に1小節、後ろに1小節。
             {
-                // 前
-                var origBPM = origin.BPM;
-                var time = GetMeasureDuration(new Measure(4, 4), origBPM);
-                list.ForEach(c => c.Time += (long)Math.Abs(time));
-            }
-            {
-                // 後
-                var last = list.Last();
-                var lastChip = new Chip
+                // 3秒。
+                var offsetTime = 3L * 1000 * 1000;
                 {
-                    BPM = last.BPM,
-                    Scroll = last.Scroll,
-                    CanShow = false,
-                    ChipType = Chips.Measure,
-                    Time = last.Time + (long)Math.Abs(GetMeasureDuration(nowMeasure, last.BPM))
-                };
+                    // 前
+                    var origBPM = origin.BPM;
+                    list.ForEach(c => c.Time += offsetTime);
+                }
+                {
+                    // 後
+                    var last = list.Last();
+                    var lastChip = new Chip
+                    {
+                        BPM = last.BPM,
+                        Scroll = last.Scroll,
+                        CanShow = false,
+                        ChipType = Chips.Measure,
+                        Time = last.Time + offsetTime
+                    };
 
-                list.Add(lastChip);
+                    list.Add(lastChip);
+                }
             }
-
 
             return playable;
         }

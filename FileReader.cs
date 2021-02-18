@@ -1,8 +1,8 @@
-﻿using System.IO;
+﻿using Koioto.Support;
+using Newtonsoft.Json;
+using System.IO;
 using System.Linq;
 using System.Text;
-using Koioto.Support;
-using Newtonsoft.Json;
 
 namespace Koioto.SamplePlugin.OpenTaikoChart
 {
@@ -17,7 +17,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
         public string Description => "Koioto file Reader plugin for Open Taiko Chart.";
 
-        public string Version => "1.9";
+        public string Version => "2.1";
 
         public string[] GetExtensions()
         {
@@ -40,40 +40,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
         private Infomationable TCIParser(string filePath)
         {
-            var infoText = File.ReadAllText(filePath, Encoding.UTF8);
-            var info = JsonConvert.DeserializeObject<OpenTaikoChartInfomation>(infoText);
-
-            var courses = new OpenTaikoChart_Difficluty[info.Courses.Length];
-            for (var courseIndex = 0; courseIndex < courses.Length; courseIndex++)
-            {
-                // SP譜面
-                var path = Path.Combine(Path.GetDirectoryName(filePath), info.Courses[courseIndex].Single);
-                if (!File.Exists(path))
-                {
-                    courses[courseIndex] = null;
-                    continue;
-                }
-                var single = File.ReadAllText(path, Encoding.UTF8);
-                courses[courseIndex] = new OpenTaikoChart_Difficluty
-                {
-                    Single = JsonConvert.DeserializeObject<OpenTaikoChartCourse>(single)
-                };
-
-                // DP譜面
-                if (info.Courses[courseIndex].Multiple == null)
-                {
-                    continue;
-                }
-
-                var multipleAmount = info.Courses[courseIndex].Multiple.Length;
-                courses[courseIndex].Multiple = new OpenTaikoChartCourse[multipleAmount];
-                for (var multipleIndex = 0; multipleIndex < multipleAmount; multipleIndex++)
-                {
-                    var multiple = File.ReadAllText(Path.Combine(Path.GetDirectoryName(filePath), info.Courses[courseIndex].Multiple[multipleIndex]), Encoding.UTF8);
-                    courses[courseIndex].Multiple[multipleIndex] = JsonConvert.DeserializeObject<OpenTaikoChartCourse>(multiple);
-                }
-            }
-
+            var info = GetOpenTaikoChartInfomation(filePath);
             var result = new Infomationable
             {
                 FilePath = filePath,
@@ -103,7 +70,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             return null;
         }
 
-        public (Playable[], ChartInfo) GetPlayable(string filePath, Koioto.Support.FileReader.Courses courses)
+        public Player<Playable> GetPlayable(string filePath, Koioto.Support.FileReader.Courses courses)
         {
             if (Path.GetExtension(filePath) == ".tci")
             {
@@ -113,49 +80,25 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             {
                 return TCMPlayable(filePath, courses);
             }
-            return (null, null);
+            return null;
         }
 
-        private (Playable[], ChartInfo) TCIPlayable(string filePath, Koioto.Support.FileReader.Courses course)
+        public ChartInfo GetChartInfo(string filePath)
+        {
+            if (Path.GetExtension(filePath) == ".tci")
+            {
+                return TCIChartInfo(filePath);
+            }
+            else if (Path.GetExtension(filePath) == ".tcm")
+            {
+                return TCMChartInfo(filePath);
+            }
+            return null;
+        }
+
+        private ChartInfo TCIChartInfo(string filePath)
         {
             var info = GetOpenTaikoChartInfomation(filePath);
-
-            var courses = new OpenTaikoChart_Difficluty[info.Courses.Length];
-
-            // とりあえず、難易度を入れる
-
-            var neededCourse = info.Courses.Where(d => GetCoursesFromStirng(d.Difficulty) == course);
-
-            if (!neededCourse.Any())
-            {
-                // コースが無ければnullを返す。
-                return (null, null);
-            }
-
-            // コースが存在すれば処理を続行。
-            var diff = neededCourse.First();
-
-            var singleFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(filePath), diff.Single), Encoding.UTF8);
-
-            var multipleFile = new string[0];
-            if (diff.Multiple != null)
-            {
-                multipleFile = new string[diff.Multiple.Length];
-                for (var i = 0; i < multipleFile.Length; i++)
-                {
-                    multipleFile[i] = File.ReadAllText(Path.Combine(Path.GetDirectoryName(filePath), diff.Multiple[i]), Encoding.UTF8);
-                }
-            }
-
-            var single = JsonConvert.DeserializeObject<OpenTaikoChartCourse>(singleFile);
-            var multiple = new OpenTaikoChartCourse[multipleFile.Length];
-            for (var i = 0; i < multiple.Length; i++)
-            {
-                multiple[i] = JsonConvert.DeserializeObject<OpenTaikoChartCourse>(multipleFile[i]);
-            }
-
-            var resultJson = new OpenTaikoChartCourse[] { single }.Concat(multiple);
-            var playable = resultJson.Select(c => CourseParser.Parse(info, c)).ToArray();
 
             var chartInfo = new ChartInfo();
 
@@ -194,10 +137,59 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             chartInfo.Offset = new double?[1];
             chartInfo.Offset[0] = info.Offset;
 
-            return (playable, chartInfo);
+            return chartInfo;
         }
 
-        private (Playable[], ChartInfo) TCMPlayable(string filePath, Koioto.Support.FileReader.Courses courses)
+        private ChartInfo TCMChartInfo(string filePath)
+        {
+            // not implemented
+            return null;
+        }
+
+        private Player<Playable> TCIPlayable(string filePath, Koioto.Support.FileReader.Courses course)
+        {
+            var info = GetOpenTaikoChartInfomation(filePath);
+
+            var result = new Player<Playable>();
+
+            // とりあえず、難易度を入れる
+            var neededCourse = info.Courses.Where(d => GetCoursesFromStirng(d.Difficulty) == course);
+
+            if (!neededCourse.Any())
+            {
+                // コースが無ければnullを返す。
+                return null;
+            }
+
+            // コースが存在すれば処理を続行。
+            var diff = neededCourse.First();
+
+            var singleFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(filePath), diff.Single), Encoding.UTF8);
+
+            var multipleFile = new string[0];
+            if (diff.Multiple != null)
+            {
+                multipleFile = new string[diff.Multiple.Length];
+                for (var i = 0; i < multipleFile.Length; i++)
+                {
+                    multipleFile[i] = File.ReadAllText(Path.Combine(Path.GetDirectoryName(filePath), diff.Multiple[i]), Encoding.UTF8);
+                }
+            }
+
+            var single = JsonConvert.DeserializeObject<OpenTaikoChartCourse>(singleFile);
+            var multiple = new OpenTaikoChartCourse[multipleFile.Length];
+            for (var i = 0; i < multiple.Length; i++)
+            {
+                multiple[i] = JsonConvert.DeserializeObject<OpenTaikoChartCourse>(multipleFile[i]);
+            }
+
+            result.Single = CourseParser.Parse(info, single);
+            result.Multiple = multiple.Select(m => CourseParser.Parse(info, m)).ToArray();
+
+            return result;
+        }
+
+        private Player<Playable> TCMPlayable(string filePath, Koioto.Support.FileReader.Courses courses)
         {
             var medley = GetOpenTaikoChartMedley(filePath);
 
@@ -211,7 +203,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                 var course = GetCoursesFromStirng(item.Difficulty);
             }
 
-            return (null, null);
+            return null;
         }
 
         private static OpenTaikoChartInfomation GetOpenTaikoChartInfomation(string filePath)
@@ -233,20 +225,20 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             switch (str)
             {
                 case "easy":
-                    return Koioto.Support.FileReader.Courses.Easy;
+                    return Support.FileReader.Courses.Easy;
 
                 case "normal":
-                    return Koioto.Support.FileReader.Courses.Normal;
+                    return Support.FileReader.Courses.Normal;
 
                 case "hard":
-                    return Koioto.Support.FileReader.Courses.Hard;
+                    return Support.FileReader.Courses.Hard;
 
                 case "edit":
-                    return Koioto.Support.FileReader.Courses.Edit;
+                    return Support.FileReader.Courses.Edit;
 
                 case "oni":
                 default:
-                    return Koioto.Support.FileReader.Courses.Oni;
+                    return Support.FileReader.Courses.Oni;
             }
         }
     }
