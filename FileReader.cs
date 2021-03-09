@@ -17,12 +17,12 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
         public string Description => "Koioto file Reader plugin for Open Taiko Chart.";
 
-        public string Version => "2.1";
+        public string Version => "2.2";
 
         public string[] GetExtensions()
         {
             // サポートする拡張子をreturn。
-            return new string[] { ".tci", ".tcm" };
+            return new string[] { ".tci"/*, ".tcm" */};
         }
 
         public Infomationable GetSelectable(string filePath)
