@@ -7,9 +7,9 @@ using System.Text;
 namespace Koioto.SamplePlugin.OpenTaikoChart
 {
     /// <summary>
-    /// Open Taiko Chart Rev2.2 に準拠したクラス。
+    /// Open Taiko Chart Rev2.3 に準拠したクラス。
     /// </summary>
-    public class FileReader : Koioto.Plugin.IFileReadable
+    public class FileReader : Koioto.Plugin.IChartReadable
     {
         public string Name => "OpenTaikoChart";
 
@@ -17,7 +17,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
         public string Description => "Koioto file Reader plugin for Open Taiko Chart.";
 
-        public string Version => "2.2";
+        public string Version => "2.3";
 
         public string[] GetExtensions()
         {
@@ -25,7 +25,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             return new string[] { ".tci"/*, ".tcm" */};
         }
 
-        public Infomationable GetSelectable(string filePath)
+        public SongSelectMetadata GetSelectable(string filePath)
         {
             if (Path.GetExtension(filePath) == ".tci")
             {
@@ -38,10 +38,10 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             return null;
         }
 
-        private Infomationable TCIParser(string filePath)
+        private SongSelectMetadata TCIParser(string filePath)
         {
             var info = GetOpenTaikoChartInfomation(filePath);
-            var result = new Infomationable
+            var result = new SongSelectMetadata
             {
                 FilePath = filePath,
                 Title = info.Title,
@@ -64,7 +64,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             return result;
         }
 
-        private Infomationable TCMParser(string filePath)
+        private SongSelectMetadata TCMParser(string filePath)
         {
             // not implemented
             return null;
@@ -83,7 +83,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             return null;
         }
 
-        public ChartInfo GetChartInfo(string filePath)
+        public ChartMetadata GetChartInfo(string filePath)
         {
             if (Path.GetExtension(filePath) == ".tci")
             {
@@ -96,11 +96,11 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             return null;
         }
 
-        private ChartInfo TCIChartInfo(string filePath)
+        private ChartMetadata TCIChartInfo(string filePath)
         {
             var info = GetOpenTaikoChartInfomation(filePath);
 
-            var chartInfo = new ChartInfo();
+            var chartInfo = new ChartMetadata();
 
             chartInfo.Title = new string[1];
             chartInfo.Title[0] = info.Title;
@@ -140,7 +140,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             return chartInfo;
         }
 
-        private ChartInfo TCMChartInfo(string filePath)
+        private ChartMetadata TCMChartInfo(string filePath)
         {
             // not implemented
             return null;
@@ -193,7 +193,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
         {
             var medley = GetOpenTaikoChartMedley(filePath);
 
-            var chartInfo = new ChartInfo();
+            var chartInfo = new ChartMetadata();
 
             chartInfo.Title = new string[medley.Charts.Length];
 

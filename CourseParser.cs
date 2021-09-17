@@ -30,6 +30,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             var nowBPM = otci.BPM ?? 120.0;
             var nowMeasure = new Measure(4, 4);
             var nowScroll = 1.0;
+            var nowRotate = 0.0;
             var isGoGoTime = false;
             var measureCount = 0;
             var isFirstNoteInMeasure = true;
@@ -107,6 +108,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                                 ChipType = Chips.Measure,
                                 CanShow = barVisible,
                                 Scroll = nowScroll,
+                                Direction = nowRotate.ToRad(),
                                 BPM = nowBPM,
                                 IsGoGoTime = isGoGoTime,
                                 Measure = nowMeasure,
@@ -122,7 +124,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                             if (digit >= '0' && digit <= '9')
                             {
                                 // 数字だ
-                                var note = NotesConverter.GetNotesFromChar(digit);
+                                var note = GetNotesFromChar(digit);
 
                                 // 音符の追加
                                 var noteChip = new Chip
@@ -130,6 +132,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                                     ChipType = Chips.Note,
                                     NoteType = note,
                                     Scroll = nowScroll,
+                                    Direction = nowRotate.ToRad(),
                                     BPM = nowBPM,
                                     CanShow = true,
                                     IsGoGoTime = isGoGoTime,
@@ -212,6 +215,19 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                                 continue;
                             }
                         }
+                        else if (commandMatch("#rotate"))
+                        {
+                            // #rotate n1
+                            if (double.TryParse(param, out var rotate))
+                            {
+                                eventChip.ChipType = Chips.RotateChange;
+                                nowRotate = rotate;
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
                         else if (commandMatch("#tsign"))
                         {
                             // #tsign n1/n2
@@ -273,6 +289,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                         }
 
                         eventChip.Scroll = nowScroll;
+                        eventChip.Direction = nowRotate.ToRad();
                         eventChip.BPM = nowBPM;
                         eventChip.IsGoGoTime = isGoGoTime;
                         eventChip.Measure = nowMeasure;
@@ -291,6 +308,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                         ChipType = Chips.Measure,
                         CanShow = barVisible,
                         Scroll = nowScroll,
+                        Direction = nowRotate.ToRad(),
                         BPM = nowBPM,
                         IsGoGoTime = isGoGoTime,
                         Measure = nowMeasure,
@@ -378,6 +396,33 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
         private static double GetMeasureDuration(Measure measure, double bpm)
         {
             return measure.GetRate() / bpm * 1000 * 1000.0;
+        }
+
+        /// <summary>
+        /// 弧度法の角度に変換する。
+        /// </summary>
+        /// <param name="deg">度数法の角度。</param>
+        /// <returns>弧度法の角度。</returns>
+        private static double ToRad(this double deg)
+        {
+            return deg * Math.PI / 180.0;
+        }
+
+        private static Notes GetNotesFromChar(char ch)
+        {
+            switch (ch)
+            {
+                case '0': return Notes.Space;
+                case '1': return Notes.Don;
+                case '2': return Notes.Ka;
+                case '3': return Notes.DON;
+                case '4': return Notes.KA;
+                case '5': return Notes.RollStart;
+                case '6': return Notes.ROLLStart;
+                case '7': return Notes.Balloon;
+                case '8': return Notes.RollEnd;
+                default: return Notes.Space;
+            }
         }
     }
 }
