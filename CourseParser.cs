@@ -148,14 +148,21 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
                                     if (note == Notes.Balloon)
                                     {
-                                        if (courseJson.Balloon.Length > balloonIndex)
+                                        if (courseJson.Balloon != null)
                                         {
-                                            noteChip.RollObjective = courseJson.Balloon[balloonIndex] ?? 5;
-                                            balloonIndex++;
+                                            if (courseJson.Balloon.Length > balloonIndex)
+                                            {
+                                                noteChip.RollObjective = courseJson.Balloon[balloonIndex] ?? DefaultBalloon;
+                                                balloonIndex++;
+                                            }
+                                            else
+                                            {
+                                                noteChip.RollObjective = DefaultBalloon;
+                                            }
                                         }
                                         else
                                         {
-                                            noteChip.RollObjective = 5;
+                                            noteChip.RollObjective = DefaultBalloon;
                                         }
                                     }
                                 }
@@ -386,6 +393,11 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
             return playable;
         }
+
+        /// <summary>
+        /// ふうせん連打のデフォルトの目標打数。
+        /// </summary>
+        private static readonly int DefaultBalloon = 5;
 
         /// <summary>
         /// 1小節の時間を求める。
