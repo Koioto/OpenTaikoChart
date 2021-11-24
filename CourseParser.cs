@@ -34,7 +34,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             var isGoGoTime = false;
             var measureCount = 0;
             var isFirstNoteInMeasure = true;
-            var movieOffset = otci.Movieoffset;
+            var movieOffset = GetMovieOffset(otci.Background, otci.Movieoffset);
             var barVisible = true;
             Chip rollstartChip = null;
 
@@ -435,6 +435,15 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                 case '8': return Notes.RollEnd;
                 default: return Notes.Space;
             }
+        }
+
+        private static double? GetMovieOffset(string path, double? movieoffset)
+        {
+            if (Util.GetMimeType(path).StartsWith("video"))
+            {
+                return movieoffset ?? 0;
+            }
+            return null;
         }
     }
 }
