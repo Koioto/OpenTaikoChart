@@ -384,6 +384,8 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                         Scroll = last.Scroll,
                         CanShow = false,
                         ChipType = Chips.Measure,
+                        Measure = nowMeasure,
+                        MeasureCount = measureCount,
                         Time = last.Time + offsetTime
                     };
 

@@ -18,7 +18,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
         public string Description => "Koioto file Reader plugin for Open Taiko Chart.\n" +
             "Supported Rev.: 2.3";
 
-        public string Version => "2.5";
+        public string Version => "2.6";
 
         public string[] GetExtensions()
         {
