@@ -16,14 +16,14 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
         public string[] Creator => new string[] { "AioiLight" };
 
         public string Description => "Koioto file Reader plugin for Open Taiko Chart.\n" +
-            "Supported Rev.: 2.3";
+            "Supported Rev.: 2.4";
 
-        public string Version => "2.6";
+        public string Version => "3.0";
 
         public string[] GetExtensions()
         {
             // サポートする拡張子をreturn。
-            return new string[] { ".tci"/*, ".tcm" */};
+            return new string[] { ".tci", ".tcm"};
         }
 
         public SongSelectMetadata GetSelectable(string filePath)
@@ -50,9 +50,9 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                 BPM = info.BPM,
                 Artist = info.Artist,
                 Creator = info.Creator,
-                PreviewSong = info.Audio != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Audio) : null,
+                PreviewSong = info.Audio != null ? GetPath(filePath, info.Audio) : null,
                 SongPreviewTime = info.SongPreview,
-                AlbumartPath = info.Albumart != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Albumart) : null
+                AlbumartPath = info.Albumart != null ? GetPath(filePath, info.Albumart) : null
             };
 
             foreach (var item in info.Courses)
@@ -67,8 +67,38 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
 
         private SongSelectMetadata TCMParser(string filePath)
         {
-            // not implemented
-            return null;
+            var medley = GetOpenTaikoChartMedley(filePath);
+            var charts = medley.Charts.Select(c => TCIParser(GetPath(filePath, c.File)));
+
+            var result = new SongSelectMetadata
+            {
+                FilePath = filePath,
+                Title = medley.Title,
+                SubTitle = medley.Subtitle,
+                BPM = null,
+                Artist = charts.SelectMany(c => c.Artist).ToArray(),
+                Creator = charts.SelectMany(c => c.Creator).ToArray(),
+                PreviewSong = charts.First().PreviewSong,
+                SongPreviewTime = charts.First().SongPreviewTime,
+                AlbumartPath =
+                    string.IsNullOrWhiteSpace(medley.Albumart)
+                        ? charts.First().AlbumartPath : GetPath(filePath, medley.Albumart)
+            };
+
+            if (medley.Exams != null && medley.Exams.Length > 0)
+            {
+                result[Support.FileReader.Courses.Dan] = new Difficulty();
+            }
+            else
+            {
+                var course = GetCoursesFromStirng(medley.Charts.First().Difficulty);
+                result[course] = new Difficulty()
+                {
+                    Level = charts.First()[course].Level
+                };
+            }
+
+            return result;
         }
 
         public Player<Playable> GetPlayable(string filePath, Koioto.Support.FileReader.Courses courses)
@@ -101,50 +131,75 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
         {
             var info = GetOpenTaikoChartInfomation(filePath);
 
-            var chartInfo = new ChartMetadata();
+            var chartMetadata = new ChartMetadata();
 
-            chartInfo.Title = new string[1];
-            chartInfo.Title[0] = info.Title;
+            chartMetadata.Title = new string[1];
+            chartMetadata.Title[0] = info.Title;
 
-            chartInfo.Subtitle = new string[1];
-            chartInfo.Subtitle[0] = info.Subtitle;
+            chartMetadata.Subtitle = new string[1];
+            chartMetadata.Subtitle[0] = info.Subtitle;
 
-            chartInfo.Artist = new string[1][];
+            chartMetadata.Artist = new string[1][];
             if (info.Artist != null)
             {
-                chartInfo.Artist[0] = new string[info.Artist.Length];
-                chartInfo.Artist[0] = info.Artist;
+                chartMetadata.Artist[0] = new string[info.Artist.Length];
+                chartMetadata.Artist[0] = info.Artist;
             }
 
-            chartInfo.Creator = new string[1][];
+            chartMetadata.Creator = new string[1][];
             if (info.Creator != null)
             {
-                chartInfo.Creator[0] = new string[info.Creator.Length];
-                chartInfo.Creator[0] = info.Creator;
+                chartMetadata.Creator[0] = new string[info.Creator.Length];
+                chartMetadata.Creator[0] = info.Creator;
             }
 
-            chartInfo.Audio = new string[1];
-            chartInfo.Audio[0] = info.Audio != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Audio) : null;
+            chartMetadata.Audio = new string[1];
+            chartMetadata.Audio[0] = info.Audio != null ? GetPath(filePath, info.Audio) : null;
 
-            chartInfo.Background = new string[1];
-            chartInfo.Background[0] = info.Background != null ? Path.Combine(Path.GetDirectoryName(filePath), info.Background) : null;
+            chartMetadata.Background = new string[1];
+            chartMetadata.Background[0] = info.Background != null ? GetPath(filePath, info.Background) : null;
 
-            chartInfo.Movieoffset = new double?[1];
-            chartInfo.Movieoffset[0] = info.Movieoffset;
+            chartMetadata.Movieoffset = new double?[1];
+            chartMetadata.Movieoffset[0] = info.Movieoffset;
 
-            chartInfo.BPM = new double?[1];
-            chartInfo.BPM[0] = info.BPM;
+            chartMetadata.BPM = new double?[1];
+            chartMetadata.BPM[0] = info.BPM;
 
-            chartInfo.Offset = new double?[1];
-            chartInfo.Offset[0] = info.Offset;
+            chartMetadata.Offset = new double?[1];
+            chartMetadata.Offset[0] = info.Offset;
 
-            return chartInfo;
+            return chartMetadata;
         }
 
         private ChartMetadata TCMChartInfo(string filePath)
         {
-            // not implemented
-            return null;
+            var medley = GetOpenTaikoChartMedley(filePath);
+            var charts = medley.Charts.Select(
+                c => TCIChartInfo(GetPath(filePath, c.File)));
+
+            var chartMetadata = new ChartMetadata();
+
+            var sections = medley.Charts.Length;
+
+            chartMetadata.Title = charts.SelectMany(c => c.Title).ToArray();
+
+            chartMetadata.Subtitle = charts.SelectMany(c => c.Subtitle).ToArray();
+
+            chartMetadata.Artist = charts.SelectMany(c => c.Artist).ToArray();
+
+            chartMetadata.Creator = charts.SelectMany(c => c.Creator).ToArray();
+
+            chartMetadata.Audio = charts.SelectMany(c => c.Audio).ToArray();
+
+            chartMetadata.Background = charts.SelectMany(c => c.Background).ToArray();
+
+            chartMetadata.Movieoffset = charts.SelectMany(c => c.Movieoffset).ToArray();
+
+            chartMetadata.BPM = charts.SelectMany(c => c.BPM).ToArray();
+
+            chartMetadata.Offset = charts.SelectMany(c => c.Offset).ToArray();
+
+            return chartMetadata;
         }
 
         private Player<Playable> TCIPlayable(string filePath, Koioto.Support.FileReader.Courses course)
@@ -165,7 +220,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
             // コースが存在すれば処理を続行。
             var diff = neededCourse.First();
 
-            var singleFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(filePath), diff.Single), Encoding.UTF8);
+            var singleFile = File.ReadAllText(GetPath(filePath, diff.Single), Encoding.UTF8);
 
             var multipleFile = new string[0];
             if (diff.Multiple != null)
@@ -173,7 +228,7 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                 multipleFile = new string[diff.Multiple.Length];
                 for (var i = 0; i < multipleFile.Length; i++)
                 {
-                    multipleFile[i] = File.ReadAllText(Path.Combine(Path.GetDirectoryName(filePath), diff.Multiple[i]), Encoding.UTF8);
+                    multipleFile[i] = File.ReadAllText(GetPath(filePath, diff.Multiple[i]), Encoding.UTF8);
                 }
             }
 
@@ -194,17 +249,14 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
         {
             var medley = GetOpenTaikoChartMedley(filePath);
 
-            var chartInfo = new ChartMetadata();
+            var charts = medley.Charts.Select(
+                c => TCIPlayable(GetPath(filePath, c.File), GetCoursesFromStirng(c.Difficulty)));
 
-            chartInfo.Title = new string[medley.Charts.Length];
+            var result = new Player<Playable>();
+            result.Single = new Playable();
+            result.Single.Sections = charts.SelectMany(c => c.Single.Sections).ToArray();
 
-            // コースの読み込み。
-            foreach (var item in medley.Charts)
-            {
-                var course = GetCoursesFromStirng(item.Difficulty);
-            }
-
-            return null;
+            return result;
         }
 
         private static OpenTaikoChartInfomation GetOpenTaikoChartInfomation(string filePath)
@@ -241,6 +293,11 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                 default:
                     return Support.FileReader.Courses.Oni;
             }
+        }
+
+        private string GetPath(string origin, string target)
+        {
+            return Path.Combine(Path.GetDirectoryName(origin), target);
         }
     }
 
@@ -286,6 +343,8 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
     public class OpenTaikoChart_Medley
     {
         public string Title { get; set; }
+        public string Subtitle { get; set; }
+        public string Albumart { get; set; }
         public OpenTaikoChart_Medley_Exams[] Exams { get; set; }
 
         public OpenTaikoChart_Medley_Charts[] Charts { get; set; }

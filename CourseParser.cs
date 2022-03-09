@@ -393,6 +393,8 @@ namespace Koioto.SamplePlugin.OpenTaikoChart
                 }
             }
 
+            list.Sort();
+
             return playable;
         }
 
